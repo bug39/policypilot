@@ -29,8 +29,21 @@ COMPLETED:
   - Replaced follow-up chat with batch analysis stretch goal
   - Added red herring policies
   - Shifted system prompt drafting to Day 0
-- Created features.json (20 features across 6 phases)
+- Created features.json v1 (20 features across 6 phases)
 - Created init.sh and this progress file
+- Ran feature list audit (third audit)
+- Updated features.json v2 (23 features) addressing all critical/high findings:
+  - Split F05 (system prompt tuning) into 3 sub-features: scenarios 1&2, 3&4, consistency pass
+  - Added F09: TypeScript types + demo ticket data + mock parsed verdicts (foundation phase)
+  - Added F12: Two-panel layout shell with state management and conditional rendering
+  - Merged empty/onboarding state into layout shell (F12)
+  - Added preconditions to F20 (integration) and F23 (submission)
+  - Fixed F16→F19: timing label says "Analysis completed" not "Policies retrieved"
+  - Added F07 step: save sample XML outputs as mock data for frontend
+  - Added F07 step: begin submission post skeleton (submission-draft.md)
+  - All verification steps now labeled Manual/Automated where appropriate
+  - Added error-case testing to F11 (API route)
+  - Added go/no-go decision criteria to F03
 
 KEY DECISIONS:
 - Track: Non-Conversational (less competitive, proactive workflow enhancement)

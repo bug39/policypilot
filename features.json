@@ -7,32 +7,38 @@
     {
       "id": "spike",
       "name": "Day 0 Spike",
-      "description": "Validate Agent Studio feasibility. Go/no-go gate."
+      "description": "Validate Agent Studio feasibility. Go/no-go gate.",
+      "target_day": 0
     },
     {
       "id": "data",
       "name": "Data & Agent",
-      "description": "Full policy dataset + tuned Agent Studio agent that nails all 4 scenarios."
+      "description": "Full policy dataset + tuned Agent Studio agent that nails all 4 scenarios.",
+      "target_day": 1
     },
     {
       "id": "foundation",
       "name": "Frontend Foundation",
-      "description": "Project scaffolding, parser, API proxy — no UI yet."
+      "description": "Project scaffolding, types, mock data, parser, API proxy, layout shell. Build with mock data — no live API dependency.",
+      "target_day": "1 evening + 2 morning"
     },
     {
       "id": "ui",
       "name": "UI Components",
-      "description": "All visual components. Build with mock data first, wire live later."
+      "description": "All visual components. Build against mock data, verify visually.",
+      "target_day": 2
     },
     {
       "id": "integration",
       "name": "Integration",
-      "description": "Connect frontend to live Agent Studio API. End-to-end verification."
+      "description": "Connect frontend to live Agent Studio API. End-to-end verification.",
+      "target_day": "2 evening"
     },
     {
       "id": "ship",
       "name": "Deploy & Submit",
-      "description": "Vercel deployment, polish, dev.to submission post."
+      "description": "Vercel deployment, polish, dev.to submission post.",
+      "target_day": 3
     }
   ],
 
@@ -43,14 +49,14 @@
       "category": "infrastructure",
       "description": "Create Algolia account, index, and push 5-6 test policy records",
       "steps": [
-        "Create Algolia account on Free Build plan",
-        "Create index named 'apex_gear_policies'",
-        "Configure searchable attributes: text, clause_title, policy_name, applies_to, conditions",
-        "Configure faceting attributes: policy_type, policy_layer, applies_to, product_tags, effect",
-        "Configure custom ranking: desc(policy_layer), desc(priority), desc(specificity_score)",
-        "Push 5-6 test policy records matching the PolicyRecord schema",
-        "Verify records are searchable via Algolia dashboard",
-        "Run a test search with filters (e.g., policy_type:warranty AND product_tags:fitness) and confirm correct results"
+        "Manual (Dashboard): Create Algolia account on Free Build plan",
+        "Manual (Dashboard): Create index named 'apex_gear_policies'",
+        "Manual (Dashboard): Configure searchable attributes: text, clause_title, policy_name, applies_to, conditions",
+        "Manual (Dashboard): Configure faceting attributes: policy_type, policy_layer, applies_to, product_tags, effect",
+        "Manual (Dashboard): Configure custom ranking: desc(policy_layer), desc(priority), desc(specificity_score)",
+        "Automated: Push 5-6 test policy records matching the PolicyRecord schema via algoliasearch client",
+        "Automated: Verify via API — run index.search('treadmill', { filters: 'policy_type:warranty' }) and confirm results",
+        "Automated: Verify via API — run index.search('return', { filters: 'policy_layer:1' }) and confirm general return policy is returned"
       ],
       "passes": false
     },
@@ -60,13 +66,14 @@
       "category": "infrastructure",
       "description": "Configure Agent Studio agent with system prompt v1 and validate basic functionality",
       "steps": [
-        "Create Agent Studio agent in Algolia dashboard",
-        "Add Algolia Search tool pointing to apex_gear_policies index",
-        "Configure LLM provider (try Algolia's free GPT-4.1 first, fall back to own OpenAI key)",
-        "Set temperature to 0",
-        "Write system prompt v1 with XML output format and conflict-resolution protocol",
-        "Publish the agent",
-        "Send a test query via /completions API and confirm a response is returned"
+        "Manual (Dashboard): Create Agent Studio agent in Algolia dashboard",
+        "Manual (Dashboard): Add Algolia Search tool pointing to apex_gear_policies index",
+        "Manual (Dashboard): Configure LLM provider (try Algolia's free GPT-4.1 first, fall back to own OpenAI key)",
+        "Manual (Dashboard): Set temperature to 0",
+        "Manual (Dashboard): Write system prompt v1 with XML output format and conflict-resolution protocol per SPEC.md System Prompt Requirements section",
+        "Manual (Dashboard): Publish the agent",
+        "Automated: Send a test query via /completions API using curl or script and confirm a response is returned",
+        "Document: Record the ALGOLIA_APP_ID, ALGOLIA_API_KEY, and ALGOLIA_AGENT_ID for later use"
       ],
       "passes": false
     },
@@ -74,17 +81,18 @@
       "id": "F03",
       "phase": "spike",
       "category": "validation",
-      "description": "Validate multi-step retrieval, XML output, and response structure",
+      "description": "Validate multi-step retrieval, XML output, and response structure — go/no-go gate",
       "steps": [
-        "Send the treadmill scenario query ('Pro-Treadmill motor failure at 45 days')",
-        "Log the FULL raw /completions response including all parts and types",
-        "Document all observed 'parts' types (step-start, text, tool-call, etc.)",
-        "Confirm agent makes multiple Algolia Search calls (general policy + product warranty)",
+        "Send the treadmill scenario query ('Pro-Treadmill motor failure at 45 days') via /completions API",
+        "Log the FULL raw response including all parts and types",
+        "Document all observed 'parts' types (step-start, text, tool-call, etc.) in claude-progress.txt",
+        "Confirm agent makes multiple Algolia Search calls (general policy + product warranty) OR confirm fallback single-query approach returns all relevant policies",
         "Confirm response contains valid XML tags (<analysis>, <verdict>, <policies>, etc.)",
         "Run the same query 5 times and confirm verdict is APPROVED every time",
         "Confirm the agent cites clause_id values from actual index records (not hallucinated)",
         "Attempt to parse the XML output programmatically and log success/failure",
-        "If multi-step retrieval fails: test fallback approach (single broad query with custom ranking)"
+        "GO/NO-GO: If multi-step retrieval works AND XML output is parseable, proceed. If multi-step fails but single-query fallback works AND XML parses, proceed with fallback architecture. If NEITHER works, project is no-go — reassess approach.",
+        "Document spike findings and any architectural decisions that affect frontend in claude-progress.txt"
       ],
       "passes": false
     },
@@ -94,17 +102,18 @@
       "category": "data",
       "description": "Create and push full policy dataset (~25-35 records) to Algolia",
       "steps": [
+        "Create src/data/policies.json (or .ts) with all policy records",
         "Write all store-wide policies (5-6 records): general returns, exchanges, refunds, shipping",
         "Write all category warranties (4-5 records): electronics, fitness, outdoor, audio",
         "Write all product-specific warranties (4-5 records): Pro-Treadmill, SoundPro earbuds, etc.",
         "Write all situational overrides (4-5 records): hygiene, shipping damage, recall, defective",
         "Write red herring policies (3-4 records): loyalty member extension, expired holiday special, bulk discount",
-        "Validate every record conforms to PolicyRecord TypeScript interface",
+        "Validate every record conforms to PolicyRecord interface from SPEC.md (lines 143-175)",
         "Validate all objectIDs are unique",
         "Validate all clause_ids are unique and follow consistent naming (e.g., RET-1.1, WAR-3.2)",
-        "Push all records to Algolia apex_gear_policies index",
+        "Push all records to Algolia apex_gear_policies index via algoliasearch client",
         "Verify total record count in Algolia dashboard matches expected count",
-        "Run test searches confirming each demo scenario's relevant policies are retrievable"
+        "Run test searches confirming each demo scenario's relevant policies are retrievable with appropriate filters"
       ],
       "passes": false
     },
@@ -112,23 +121,61 @@
       "id": "F05",
       "phase": "data",
       "category": "agent",
-      "description": "Tune system prompt until all 4 demo scenarios produce correct, consistent XML output",
+      "description": "Tune system prompt for Scenarios 1 (Warranty Override) and 2 (Hygiene Block)",
       "steps": [
-        "Test Scenario 1 (Warranty Override): confirm verdict=APPROVED, conflict detected, warranty wins",
-        "Test Scenario 2 (Hygiene Block): confirm verdict=DENIED, conflict detected, hygiene wins",
-        "Test Scenario 3 (Damage Override): confirm verdict=APPROVED, conflict detected, damage override wins",
-        "Test Scenario 4 (Clean Approval): confirm verdict=APPROVED, no conflict detected",
-        "Run each scenario 5 times — all runs must produce the same verdict",
-        "Confirm all cited clause_ids exist in the index (no hallucinations)",
-        "Confirm agent never asks clarifying questions (all outputs are decisive)",
-        "Confirm red herring policies are retrieved but correctly dismissed or not cited",
-        "Confirm XML output is parseable for all 4 scenarios (no malformed tags)",
-        "Save the final system prompt to the repo as system-prompt.md"
+        "Test Scenario 1 (Treadmill motor failure): send full ticket text from SPEC",
+        "Confirm verdict=APPROVED, warranty vs return conflict detected, warranty wins",
+        "Confirm cited clause_ids exist in the index",
+        "Confirm XML is well-formed and parseable",
+        "Test Scenario 2 (Earbuds return): send full ticket text from SPEC",
+        "Confirm verdict=DENIED, return vs hygiene conflict detected, hygiene wins",
+        "Confirm cited clause_ids exist in the index",
+        "Confirm XML is well-formed and parseable",
+        "If either scenario produces wrong verdict, iterate system prompt and retest",
+        "Both scenarios produce correct verdicts at least 3 times in a row"
       ],
       "passes": false
     },
     {
       "id": "F06",
+      "phase": "data",
+      "category": "agent",
+      "description": "Tune system prompt for Scenarios 3 (Damage Override) and 4 (Clean Approval)",
+      "steps": [
+        "Test Scenario 3 (Crushed hiking boots): send full ticket text from SPEC",
+        "Confirm verdict=APPROVED, return vs damage override conflict detected, damage policy wins",
+        "Confirm cited clause_ids exist in the index",
+        "Confirm XML is well-formed and parseable",
+        "Test Scenario 4 (Backpack return): send full ticket text from SPEC",
+        "Confirm verdict=APPROVED, no conflict detected, standard return approved",
+        "Confirm no spurious conflicts are reported",
+        "Confirm red herring policies (loyalty member, expired holiday, bulk discount) are NOT cited",
+        "If either scenario produces wrong verdict, iterate system prompt and retest",
+        "Both scenarios produce correct verdicts at least 3 times in a row"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F07",
+      "phase": "data",
+      "category": "agent",
+      "description": "System prompt consistency pass — all 4 scenarios, 5 runs each, save final prompt",
+      "steps": [
+        "Run Scenario 1 five times — all must return verdict=APPROVED with consistent structure",
+        "Run Scenario 2 five times — all must return verdict=DENIED with consistent structure",
+        "Run Scenario 3 five times — all must return verdict=APPROVED with consistent structure",
+        "Run Scenario 4 five times — all must return verdict=APPROVED with consistent structure",
+        "Confirm no hallucinated clause_ids across all 20 runs",
+        "Confirm XML output is parseable across all 20 runs",
+        "Confirm agent never asks clarifying questions across all 20 runs",
+        "Save the final system prompt to the repo as system-prompt.md",
+        "Save 4 representative XML outputs (one per scenario) to src/data/sample-responses/ for use as mock data in frontend development",
+        "Begin submission post skeleton: create submission-draft.md with headings for all 4 required sections and draft 'What I Built' section"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F08",
       "phase": "foundation",
       "category": "infrastructure",
       "description": "Next.js project scaffolding with Tailwind CSS and environment config",
@@ -137,109 +184,86 @@
         "Install and configure Tailwind CSS",
         "Create .env.example with ALGOLIA_APP_ID, ALGOLIA_API_KEY, ALGOLIA_AGENT_ID placeholders",
         "Create .env.local with real values (gitignored)",
-        "Add .env.local to .gitignore",
+        "Confirm .env.local is in .gitignore",
         "Verify 'npm run dev' starts the dev server on localhost:3000",
         "Verify a basic page renders at localhost:3000"
       ],
       "passes": false
     },
     {
-      "id": "F07",
+      "id": "F09",
+      "phase": "foundation",
+      "category": "data",
+      "description": "TypeScript type definitions, demo ticket data, and mock parsed verdict data",
+      "steps": [
+        "Create src/types/index.ts with PolicyRecord interface exactly as specified in SPEC.md (lines 143-175)",
+        "Create src/types/index.ts with ParsedVerdict interface exactly as specified in SPEC.md (lines 237-256): verdict, verdictType, summary, policies array, conflict object, resolution object, recommendedAction",
+        "Create src/types/index.ts with DemoTicket type: id, subject, customer, product, purchaseDate, message",
+        "Create src/data/tickets.ts with all 4 demo ticket objects using full ticket text from SPEC.md scenarios",
+        "Create src/data/mock-verdicts.ts with 4 mock ParsedVerdict objects matching expected output for each scenario (use sample responses from F07 if available, otherwise hand-craft from SPEC XML examples)",
+        "Create mock for APPROVED with conflict (scenario 1), DENIED with conflict (scenario 2), APPROVED with situational override (scenario 3), APPROVED without conflict (scenario 4)",
+        "Verify all types compile without errors (npx tsc --noEmit)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F10",
       "phase": "foundation",
       "category": "functional",
       "description": "XML response parser with typed output and fallback handling",
       "steps": [
-        "Create src/lib/parser.ts with parseVerdictResponse(raw: string): ParsedVerdict | null",
-        "Implement XML tag extraction for all fields: verdict, verdict_type, summary, policies, conflict, resolution, recommended_action",
-        "Handle malformed/missing XML gracefully — return null, never throw",
-        "Create src/lib/parser.test.ts with test cases",
-        "Test: valid XML from Scenario 1 (warranty override) parses correctly",
-        "Test: valid XML from Scenario 4 (clean approval, no conflict) parses correctly",
-        "Test: malformed XML returns null",
-        "Test: empty string returns null",
-        "Test: XML with extra whitespace/newlines parses correctly",
+        "Create src/lib/parser.ts implementing parseVerdictResponse(raw: string): ParsedVerdict | null",
+        "Parser must extract all ParsedVerdict fields by matching XML tags: <verdict>, <verdict_type>, <summary>, <policies>, <policy>, <conflict>, <resolution>, <recommended_action>",
+        "Parser must handle nested <policy> elements within <policies> and produce a correctly typed array",
+        "Parser must return null (never throw) on malformed, missing, or empty input",
+        "Create src/lib/parser.test.ts with test cases using hand-crafted XML matching SPEC output structure",
+        "Test: Scenario 1 XML (APPROVED, 2 policies, conflict exists) parses to correct ParsedVerdict",
+        "Test: Scenario 4 XML (APPROVED, 1 policy, no conflict) parses to correct ParsedVerdict",
+        "Test: Malformed XML (missing closing tags) returns null",
+        "Test: Empty string returns null",
+        "Test: XML with extra whitespace, newlines, and LLM preamble text before <analysis> tag parses correctly",
+        "Test: XML containing special characters in policy text (<, >, &) doesn't break parser",
         "All tests pass"
       ],
       "passes": false
     },
     {
-      "id": "F08",
+      "id": "F11",
       "phase": "foundation",
       "category": "functional",
       "description": "API route proxy /api/analyze that calls Agent Studio /completions",
       "steps": [
         "Create src/app/api/analyze/route.ts",
         "Accept POST request with { ticketText: string } body",
-        "Call Algolia Agent Studio /completions endpoint server-side",
-        "Forward the response back to the client",
-        "Set 30-second timeout on the fetch call",
-        "Return 500 with error message on failure",
-        "Return 504 on timeout",
-        "Verify via curl: POST /api/analyze with treadmill ticket text returns a response",
-        "Verify API keys are NOT exposed in the client-side bundle"
-      ],
-      "passes": false
-    },
-    {
-      "id": "F09",
-      "phase": "ui",
-      "category": "ui",
-      "description": "Left panel: ticket queue with 4 pre-loaded demo tickets",
-      "steps": [
-        "Create src/data/tickets.ts with all 4 demo ticket objects (subject, customer, product, purchase date, message)",
-        "Create TicketQueue component showing all 4 tickets as selectable cards",
-        "Each card shows: subject line, customer name, product name",
-        "Clicking a ticket sets it as 'selected' (visual highlight)",
-        "Selected ticket ID is lifted to parent state for the right panel to consume",
-        "Only one ticket can be selected at a time",
-        "Visual design: clean card list with hover and active states",
-        "Verify all 4 tickets render correctly and are clickable"
-      ],
-      "passes": false
-    },
-    {
-      "id": "F10",
-      "phase": "ui",
-      "category": "ui",
-      "description": "Right panel: empty/onboarding state with judge instructions",
-      "steps": [
-        "When no ticket is selected, right panel shows onboarding content",
-        "Display PolicyPilot name/logo",
-        "Display 1-2 sentence explanation: what it does and who it's for",
-        "Display instruction: 'Select a support ticket to see PolicyPilot analyze it'",
-        "Display brief 'How It Works' steps: 1) Retrieves relevant policies 2) Detects conflicts 3) Resolves and recommends",
-        "Display 'Powered by Algolia Agent Studio' attribution",
-        "Verify the empty state renders when page first loads"
-      ],
-      "passes": false
-    },
-    {
-      "id": "F11",
-      "phase": "ui",
-      "category": "ui",
-      "description": "Right panel: loading state with skeleton UI",
-      "steps": [
-        "When a ticket is selected and analysis is in progress, show loading state",
-        "Display skeleton/shimmer placeholders matching the shape of verdict + policy cards",
-        "Display animated text: 'Analyzing ticket against policy database...'",
-        "Loading state appears immediately on ticket click (no delay)",
-        "Verify loading state renders when analysis is triggered (use a mock delayed response)"
+        "Call Algolia Agent Studio /completions endpoint server-side using fetch (or Vercel AI SDK if validated in spike — document choice)",
+        "Set 30-second timeout on the fetch call using AbortController",
+        "Return 200 with the agent response body on success",
+        "Return 500 with { error: string } on API failure",
+        "Return 504 with { error: 'timeout' } if 30-second timeout is exceeded",
+        "Verify via curl: POST /api/analyze with treadmill ticket text returns XML response",
+        "Verify via curl: POST with invalid body returns 400",
+        "Verify: API keys are NOT present in the client-side bundle (check .next/static for ALGOLIA strings)",
+        "Verify: Request with intentionally wrong ALGOLIA_AGENT_ID returns 500 (not unhandled crash)"
       ],
       "passes": false
     },
     {
       "id": "F12",
-      "phase": "ui",
-      "category": "ui",
-      "description": "Right panel: verdict display card with summary and recommended action",
+      "phase": "foundation",
+      "category": "functional",
+      "description": "Two-panel layout shell with state management and conditional rendering",
       "steps": [
-        "Create VerdictCard component consuming ParsedVerdict data",
-        "Display verdict badge: green 'APPROVED', red 'DENIED', or yellow 'ESCALATE'",
-        "Display verdict_type as a subtitle (e.g., 'Warranty Claim')",
-        "Display summary text",
-        "Display recommended_action as a distinct call-to-action section",
-        "Verify with mock ParsedVerdict data for APPROVED, DENIED, and ESCALATE cases",
-        "Visual design: clear hierarchy, verdict badge is prominent"
+        "Create src/app/page.tsx with two-panel flexbox layout (left: ~1/3 width, right: ~2/3 width)",
+        "Implement state: selectedTicketId (string | null), analysisState enum (idle | loading | success | error | timeout | parseFail), analysisResult (ParsedVerdict | null), rawResponse (string | null), error (string | null)",
+        "Implement analyzeTicket(ticketId) function: sets loading state, calls POST /api/analyze, parses XML response, sets success/error/parseFail state accordingly",
+        "Implement timing: record start time on ticket click, compute elapsed time on response",
+        "Left panel: renders TicketQueue component (placeholder until F13), passes selectedTicketId and onSelectTicket callback",
+        "Right panel: conditional rendering based on analysisState — idle shows onboarding/empty state, loading/success/error/timeout/parseFail show respective components (placeholders until F14-F19)",
+        "Onboarding state (when idle): display PolicyPilot name, 1-2 sentence explanation, 'Select a support ticket to see PolicyPilot analyze it', brief 'How It Works' steps, 'Powered by Algolia Agent Studio' badge",
+        "Clicking a ticket sets selectedTicketId AND triggers analyzeTicket()",
+        "Clicking a different ticket clears previous result and triggers new analysis",
+        "Verify: page renders with two panels and onboarding text on load",
+        "Verify: state transitions work (use console.log or React DevTools)"
       ],
       "passes": false
     },
@@ -247,16 +271,16 @@
       "id": "F13",
       "phase": "ui",
       "category": "ui",
-      "description": "Right panel: policy comparison cards with win/lose indicators",
+      "description": "Left panel: ticket queue with 4 pre-loaded demo tickets",
       "steps": [
-        "Create PolicyCards component consuming ParsedVerdict.policies array",
-        "Each policy card shows: clause_id, policy_name, effect, reason",
-        "Cards with applies=true get a green check / 'Applies' indicator",
-        "Cards with applies=false get a red X / 'Overridden' indicator",
-        "The winning policy card (matching resolution.winningPolicy) has a distinct 'Winner' badge",
-        "Verify with mock data: 2 policies where one wins and one is overridden",
-        "Verify with mock data: 1 policy with no conflict (scenario 4)",
-        "Visual design: cards are side-by-side or stacked with clear contrast"
+        "Create src/components/TicketQueue.tsx consuming tickets from src/data/tickets.ts",
+        "Each ticket renders as a selectable card showing: subject line, customer name, product name, purchase date",
+        "Selected ticket has visual highlight (distinct background/border)",
+        "Only one ticket can be selected at a time",
+        "Hover state on unselected tickets",
+        "Verify: all 4 tickets render with correct data from tickets.ts",
+        "Verify: clicking a ticket highlights it and triggers the onSelectTicket callback",
+        "Verify: clicking a different ticket de-highlights the previous one"
       ],
       "passes": false
     },
@@ -264,14 +288,12 @@
       "id": "F14",
       "phase": "ui",
       "category": "ui",
-      "description": "Right panel: conflict resolution trace",
+      "description": "Right panel: loading state with skeleton UI",
       "steps": [
-        "Create ConflictTrace component consuming ParsedVerdict.conflict and ParsedVerdict.resolution",
-        "When conflict.exists=true: display conflict description and resolution rule_applied",
-        "When conflict.exists=false: display 'No conflict detected' with a neutral indicator",
-        "Resolution section shows which policy won and why (rule_applied text)",
-        "Verify with mock data: conflict scenario shows full trace",
-        "Verify with mock data: no-conflict scenario shows clean message"
+        "Create src/components/LoadingState.tsx",
+        "Display skeleton/shimmer placeholders matching the approximate shape of verdict card + policy cards",
+        "Display animated text: 'Analyzing ticket against policy database...'",
+        "Verify: loading state renders when analysisState=loading (trigger via mock or slow API)"
       ],
       "passes": false
     },
@@ -279,15 +301,16 @@
       "id": "F15",
       "phase": "ui",
       "category": "ui",
-      "description": "Right panel: error, timeout, and parse failure states",
+      "description": "Right panel: verdict display card with summary and recommended action",
       "steps": [
-        "Error state: display friendly card 'Analysis failed' with retry button",
-        "Timeout state (30s): display 'Analysis is taking longer than expected' with retry button",
-        "Parse failure state: display raw LLM response in formatted panel with yellow warning banner",
-        "Retry button re-triggers analysis for the currently selected ticket",
-        "Verify error state renders when API returns 500",
-        "Verify timeout state renders when API returns 504",
-        "Verify parse failure state renders when parser returns null"
+        "Create src/components/VerdictCard.tsx consuming ParsedVerdict",
+        "Display verdict badge: green 'APPROVED', red 'DENIED', or yellow 'ESCALATE' with sufficient color contrast",
+        "Display verdict_type as a subtitle (e.g., 'Warranty Claim', 'Hygiene Exception')",
+        "Display summary text prominently",
+        "Display recommended_action as a distinct section",
+        "Verify with mock data: APPROVED verdict renders green badge",
+        "Verify with mock data: DENIED verdict renders red badge",
+        "Verify with mock data: all text fields display correctly with no overflow"
       ],
       "passes": false
     },
@@ -295,81 +318,134 @@
       "id": "F16",
       "phase": "ui",
       "category": "ui",
-      "description": "Algolia visibility elements: retrieval time and attribution",
+      "description": "Right panel: policy comparison cards with win/lose indicators",
       "steps": [
-        "Display retrieval/processing time after successful analysis (e.g., 'Analysis completed in 3.2s')",
-        "Display 'Powered by Algolia Agent Studio' badge in the right panel footer",
-        "Time measurement starts when ticket is clicked, ends when response is parsed",
-        "Verify time displays correctly after a successful analysis"
+        "Create src/components/PolicyCards.tsx consuming ParsedVerdict.policies and ParsedVerdict.resolution",
+        "Each policy card shows: clause_id badge, policy_name, effect, reason text",
+        "Cards with applies=true show green check / 'Applies' indicator",
+        "Cards with applies=false show red X / 'Overridden' indicator",
+        "Winning policy (clause_id matches resolution.winningPolicy) has a distinct 'Prevails' or 'Winner' badge",
+        "Verify with mock data: 2 conflicting policies render with one winning, one overridden",
+        "Verify with mock data: single policy with no conflict renders cleanly (no winner badge needed)",
+        "Verify: cards handle long policy text without layout breaking"
       ],
       "passes": false
     },
     {
       "id": "F17",
-      "phase": "integration",
-      "category": "integration",
-      "description": "Wire frontend to live Agent Studio API and verify all 4 scenarios end-to-end",
+      "phase": "ui",
+      "category": "ui",
+      "description": "Right panel: conflict resolution trace",
       "steps": [
-        "Clicking a ticket triggers POST /api/analyze with the ticket text",
-        "Loading state shows while waiting for response",
-        "Response is parsed via parseVerdictResponse and rendered in UI components",
-        "Scenario 1 (Treadmill): shows APPROVED, warranty vs return conflict, warranty wins",
-        "Scenario 2 (Earbuds): shows DENIED, return vs hygiene conflict, hygiene wins",
-        "Scenario 3 (Hiking Boots): shows APPROVED, return vs damage override conflict, damage wins",
-        "Scenario 4 (Backpack): shows APPROVED, no conflict, standard return",
-        "All 4 scenarios render correctly with no console errors",
-        "Switching between tickets clears previous result and shows loading state",
-        "Re-clicking the same ticket re-triggers analysis"
+        "Create src/components/ConflictTrace.tsx consuming ParsedVerdict.conflict and ParsedVerdict.resolution",
+        "When conflict.exists=true: display section header 'Conflict Detected', conflict description, resolution rule_applied, winning policy clause_id",
+        "When conflict.exists=false: display 'No policy conflicts detected — standard policy applied' with neutral styling",
+        "Verify with mock data: conflict scenario renders full trace with highlighted rule",
+        "Verify with mock data: no-conflict scenario renders clean message"
       ],
       "passes": false
     },
     {
       "id": "F18",
-      "phase": "ship",
-      "category": "deployment",
-      "description": "Deploy to Vercel with environment variables and verify live URL",
+      "phase": "ui",
+      "category": "ui",
+      "description": "Right panel: error, timeout, and parse failure states",
       "steps": [
-        "Push code to GitHub repository",
-        "Connect repo to Vercel",
-        "Set environment variables in Vercel dashboard: ALGOLIA_APP_ID, ALGOLIA_API_KEY, ALGOLIA_AGENT_ID",
-        "Trigger deployment",
-        "Verify live URL loads and renders the ticket queue",
-        "Verify all 4 scenarios work on the live URL (not just localhost)",
-        "Verify API route works (not blocked by Vercel serverless config)",
-        "Verify no API keys are exposed in client-side JavaScript (check page source)"
+        "Create src/components/ErrorState.tsx accepting error type (error | timeout | parseFail) and a retry callback",
+        "Error state: card with 'Analysis failed. Please try again.' and retry button",
+        "Timeout state: card with 'Analysis is taking longer than expected. Please try again.' and retry button",
+        "Parse failure state: yellow warning banner 'Structured parsing failed — showing raw response' + raw LLM response in a formatted <pre> block",
+        "Parse failure display must handle special characters (<, >, &) safely via escaping or React's default XSS protection",
+        "Parse failure display must handle responses over 2000 characters (scrollable container)",
+        "Retry button calls the onRetry callback (which re-triggers analyzeTicket in the layout shell)",
+        "Verify: each state renders correctly when corresponding analysisState is set"
       ],
       "passes": false
     },
     {
       "id": "F19",
-      "phase": "ship",
-      "category": "deployment",
-      "description": "Visual polish and responsive design pass",
+      "phase": "ui",
+      "category": "ui",
+      "description": "Algolia visibility: timing display and attribution badge",
       "steps": [
-        "Review entire UI for visual consistency (spacing, colors, typography)",
-        "Ensure the layout works on common screen sizes (1280px+, 1440px, 1920px)",
-        "Ensure verdict badge colors are accessible (sufficient contrast)",
-        "Ensure all text is readable (no truncation, no overflow)",
-        "Ensure all interactive elements have hover/focus states",
-        "Final screenshot of each scenario for the submission post"
+        "Display total analysis time after successful analysis: 'Analysis completed in X.Xs' (using elapsed time measured in F12 layout shell)",
+        "Label must clearly say 'Analysis completed' NOT 'Policies retrieved' to avoid implying Algolia search is slow (total time includes LLM reasoning)",
+        "Display 'Powered by Algolia Agent Studio' badge in the right panel footer (visible in all states: onboarding, success, error)",
+        "Verify: timing displays correctly after a successful mock analysis",
+        "Verify: badge is visible in onboarding state and success state"
       ],
       "passes": false
     },
     {
       "id": "F20",
+      "phase": "integration",
+      "category": "integration",
+      "description": "Wire frontend to live Agent Studio API and verify all 4 scenarios end-to-end",
+      "preconditions": ["F05, F06, F07 must all pass (system prompt produces correct output for all 4 scenarios). If any scenario was inconsistent, fix before attempting integration."],
+      "steps": [
+        "Ensure .env.local has correct ALGOLIA_APP_ID, ALGOLIA_API_KEY, ALGOLIA_AGENT_ID",
+        "Remove or bypass any mock data overrides — frontend must call real /api/analyze route",
+        "Scenario 1 (Treadmill): click ticket, verify loading state appears, verify APPROVED verdict with warranty vs return conflict",
+        "Scenario 2 (Earbuds): click ticket, verify DENIED verdict with hygiene vs return conflict",
+        "Scenario 3 (Hiking Boots): click ticket, verify APPROVED verdict with damage override vs return conflict",
+        "Scenario 4 (Backpack): click ticket, verify APPROVED verdict with no conflict",
+        "Verify: switching between tickets clears previous result and shows loading state",
+        "Verify: re-clicking the same ticket re-triggers analysis",
+        "Verify: no console errors across all 4 scenarios",
+        "Verify: if XML parsing fails on any scenario, parse failure state renders with raw response (not a crash)",
+        "Verify: timing display shows reasonable values (2-15 seconds)"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F21",
+      "phase": "ship",
+      "category": "deployment",
+      "description": "Deploy to Vercel with environment variables and verify live URL",
+      "steps": [
+        "Push code to GitHub repository",
+        "Deploy via Vercel CLI (vercel --prod) or connect repo in Vercel dashboard",
+        "Set environment variables in Vercel: ALGOLIA_APP_ID, ALGOLIA_API_KEY, ALGOLIA_AGENT_ID",
+        "Verify: live URL loads and renders the ticket queue with onboarding text",
+        "Verify: all 4 scenarios work on the live URL (not just localhost)",
+        "Verify: API route responds (not blocked by serverless function config or timeout settings)",
+        "Verify: no API keys in client-side JavaScript (curl the page source and search for ALGOLIA)",
+        "Record the live URL in claude-progress.txt and submission-draft.md"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F22",
+      "phase": "ship",
+      "category": "deployment",
+      "description": "Visual polish pass",
+      "steps": [
+        "Check layout renders correctly at 1280px, 1440px, and 1920px widths (use browser dev tools)",
+        "Check all verdict badge colors have WCAG AA contrast (green on white, red on white, yellow on white)",
+        "Check no text truncation or overflow on any scenario's verdict/policy cards",
+        "Check all interactive elements have visible hover and focus states",
+        "Capture 4 screenshots (one per scenario) for the submission post — save to /screenshots/",
+        "Fix any visual issues found"
+      ],
+      "passes": false
+    },
+    {
+      "id": "F23",
       "phase": "ship",
       "category": "submission",
-      "description": "Write and publish dev.to submission post",
+      "description": "Finalize and publish dev.to submission post",
+      "preconditions": ["F21 must pass (live URL required). F22 should pass (screenshots needed)."],
       "steps": [
-        "Use the Non-Conversational track submission template",
-        "Section: 'What I Built' — overview of PolicyPilot, workflow it enhances, proactive assistance",
-        "Section: 'Demo' — live URL link + screenshots of all 4 scenarios",
-        "Section: 'How I Used Algolia Agent Studio' — data indexed, retrieval approach, prompt engineering details",
-        "Section: 'Why Fast Retrieval Matters' — how Algolia's speed improves the support agent workflow",
-        "Include architecture diagram or explanation of the Agent Studio pipeline",
-        "Include code snippets showing key implementation details",
-        "Proofread for clarity and completeness",
-        "Publish post on dev.to before 11:59 PM PST Feb 8"
+        "Open submission-draft.md (skeleton created in F07)",
+        "Finalize 'What I Built' section: overview of PolicyPilot, workflow it enhances, how it proactively assists support agents",
+        "Finalize 'Demo' section: insert live URL, reference 4 screenshots showing each scenario",
+        "Finalize 'How I Used Algolia Agent Studio' section: describe indexed policy data, multi-step retrieval, custom ranking by policy_layer, XML structured output, prompt engineering approach",
+        "Finalize 'Why Fast Retrieval Matters' section: explain how sub-50ms Algolia retrieval enables real-time policy analysis in a support workflow, contrast with traditional database queries",
+        "Include at least one architecture diagram or flow description (ticket → Agent Studio → retrieval → conflict resolution → verdict)",
+        "Include at least one code snippet (parser, API route, or system prompt excerpt)",
+        "Proofread all 4 sections for clarity, accuracy, and completeness",
+        "Manual: publish post on dev.to using the Non-Conversational track submission template before 11:59 PM PST Feb 8",
+        "Manual: verify published post renders correctly with all images and links"
       ],
       "passes": false
     }
