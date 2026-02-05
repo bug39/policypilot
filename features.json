@@ -58,7 +58,7 @@
         "Automated: Verify via API — run index.search('treadmill', { filters: 'policy_type:warranty' }) and confirm results",
         "Automated: Verify via API — run index.search('return', { filters: 'policy_layer:1' }) and confirm general return policy is returned"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F02",
