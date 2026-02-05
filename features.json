@@ -75,7 +75,7 @@
         "Automated: Send a test query via /completions API using curl or script and confirm a response is returned",
         "Document: Record the ALGOLIA_APP_ID, ALGOLIA_API_KEY, and ALGOLIA_AGENT_ID for later use"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F03",
