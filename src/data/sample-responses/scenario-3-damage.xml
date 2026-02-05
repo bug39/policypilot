@@ -1,0 +1,62 @@
+<analysis>
+  <verdict>APPROVED</verdict>
+  <verdict_type>damage_claim</verdict_type>
+  <summary>The return is approved because the product arrived damaged due to shipping and the customer reported the damage to the carrier on the same day, overriding the standard return window.</summary>
+
+  <policies>
+    <policy>
+      <clause_id>REF-1.1</clause_id>
+      <policy_name>General Refund Policy</policy_name>
+      <applies>true</applies>
+      <effect>refund_processed</effect>
+      <reason>This policy outlines the process for approved refunds, and the return is being approved by the shipping damage override.</reason>
+    </policy>
+    <policy>
+      <clause_id>DMG-4.1</clause_id>
+      <policy_name>Shipping Damage Override Policy</policy_name>
+      <applies>true</applies>
+      <effect>return_approved</effect>
+      <reason>The package arrived crushed, and the customer reported the shipping damage to the carrier the same day, fulfilling the conditions for this override policy.</reason>
+    </policy>
+    <policy>
+      <clause_id>RCL-4.1</clause_id>
+      <policy_name>Product Recall Policy</policy_name>
+      <applies>false</applies>
+      <effect>return_approved</effect>
+      <reason>There is no indication that the product is subject to a recall.</reason>
+    </policy>
+    <policy>
+      <clause_id>DEF-4.1</clause_id>
+      <policy_name>Defective Item Override Policy</policy_name>
+      <applies>false</applies>
+      <effect>return_approved</effect>
+      <reason>While the sole is detached, the primary cause is shipping damage, making DMG-4.1 more directly applicable than a general defective item override.</reason>
+    </policy>
+    <policy>
+      <clause_id>RET-1.1</clause_id>
+      <policy_name>General Return Policy</policy_name>
+      <applies>false</applies>
+      <effect>return_denied</effect>
+      <reason>The purchase date of 12/28/2023 is more than 30 days ago, making the standard return window expired. However, this is overridden by the shipping damage policy.</reason>
+    </policy>
+    <policy>
+      <clause_id>WAR-3.4</clause_id>
+      <policy_name>Alpine Pro Hiking Boots Warranty</policy_name>
+      <applies>true</applies>
+      <effect>warranty_approved</effect>
+      <reason>The partially detached sole could be considered a manufacturing defect covered by the 1-year warranty, and the purchase is within the warranty period. However, the shipping damage override is more pertinent to the overall issue.</reason>
+    </policy>
+  </policies>
+
+  <conflict>
+    <exists>true</exists>
+    <description>The General Return Policy (RET-1.1) would deny the return due to being outside the 30-day window, but the Shipping Damage Override Policy (DMG-4.1) approves the return because the damage was reported to the carrier within 48 hours.</description>
+  </conflict>
+
+  <resolution>
+    <winning_policy>DMG-4.1</winning_policy>
+    <rule_applied>The Shipping Damage Override Policy (DMG-4.1) is a situational override (policy_layer 4), which takes precedence over the General Return Policy (policy_layer 1) and the product-specific warranty (policy_layer 3).</rule_applied>
+  </resolution>
+
+  <recommended_action>Process a full refund or replacement for the Alpine Pro Hiking Boots as per the Shipping Damage Override Policy. Ensure documentation of the carrier damage report is obtained from the customer.</recommended_action>
+</analysis>

@@ -172,7 +172,7 @@
         "Save 4 representative XML outputs (one per scenario) to src/data/sample-responses/ for use as mock data in frontend development",
         "Begin submission post skeleton: create submission-draft.md with headings for all 4 required sections and draft 'What I Built' section"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F08",
