@@ -245,7 +245,7 @@
         "Verify: API keys are NOT present in the client-side bundle (check .next/static for ALGOLIA strings)",
         "Verify: Request with intentionally wrong ALGOLIA_AGENT_ID returns 500 (not unhandled crash)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F12",
