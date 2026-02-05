@@ -7,6 +7,7 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
+    "test": "vitest run",
     "spike:setup": "node spike/setup-index.js",
     "spike:test-completions": "node spike/test-completions.js",
     "spike:validate": "node spike/validate.js"
@@ -25,6 +26,7 @@
   "devDependencies": {
     "@types/node": "^25.2.1",
     "@types/react": "^19.2.13",
-    "typescript": "^5.9.3"
+    "typescript": "^5.9.3",
+    "vitest": "^4.0.18"
   }
 }

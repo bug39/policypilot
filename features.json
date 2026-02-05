@@ -225,7 +225,7 @@
         "Test: XML containing special characters in policy text (<, >, &) doesn't break parser",
         "All tests pass"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F11",
