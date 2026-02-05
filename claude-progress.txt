@@ -1,0 +1,74 @@
+POLICYPILOT — PROGRESS LOG
+Last updated: 2026-02-05
+Current phase: spike (Day 0)
+Next feature to work on: F01
+
+===
+
+SESSION 1 — 2026-02-05 (Day 0, Planning)
+
+COMPLETED:
+- Read hackathon brief (hackathon.md) and rough idea (rough_idea.md)
+- Researched Algolia Agent Studio capabilities, API, tools, pricing
+- Researched Algolia search/indexing features (filters, custom ranking, facets)
+- Researched competitive landscape (~15+ existing submissions analyzed)
+- Validated idea is technically feasible on Algolia Free Build plan
+- Validated idea is novel (no conflict-resolution agents in current submissions)
+- Wrote comprehensive SPEC.md covering architecture, UX, data model, scope
+- Ran two independent audits (hackathon compliance + technical gaps)
+- Fixed all FAIL/CRITICAL audit findings in SPEC.md v2:
+  - Added submission template requirements (4 required dev.to sections)
+  - Added judge-facing instructions plan
+  - Defined complete PolicyRecord TypeScript schema
+  - Defined XML structured output format with ParsedVerdict type
+  - Locked API architecture (Next.js API route proxy)
+  - Locked LLM provider (free GPT-4.1 dev, paid OpenAI prod)
+  - Added all 6 UI states (empty, loading, success, error, timeout, parse failure)
+  - Added anti-hallucination requirements
+  - Added Algolia visibility elements
+  - Replaced follow-up chat with batch analysis stretch goal
+  - Added red herring policies
+  - Shifted system prompt drafting to Day 0
+- Created features.json (20 features across 6 phases)
+- Created init.sh and this progress file
+
+KEY DECISIONS:
+- Track: Non-Conversational (less competitive, proactive workflow enhancement)
+- No chat widget of any kind (weakens non-conversational positioning)
+- XML tags for structured output (more reliable than section headers)
+- Next.js API route proxy (keeps keys server-side, avoids CORS issues)
+- policy_layer numeric field (1-4) for deterministic conflict resolution
+- Temperature=0 for demo reliability
+
+BLOCKED ON:
+- Nothing. Ready to start spike (F01).
+
+KEY RISKS IDENTIFIED:
+- Multi-step retrieval may not work in Agent Studio (validate in F03)
+- XML output parsing may be fragile (validate in F03)
+- Day 1 is ~9-13 hours of work (system prompt iteration is biggest time sink)
+- LLM rate limits during judging if using Gemini free tier (use paid OpenAI)
+
+DISCOVERIES:
+- Algolia provides free GPT-4.1 access for development
+- Vercel AI SDK compatible via compatibilityMode=ai-sdk-5
+- Agent Studio is in beta — docs may be incomplete
+- Gemini free tier rate limits reduced to 5-15 RPM (tighter than expected)
+- Previous hackathon winners were all non-obvious use cases
+
+FILES IN REPO:
+- SPEC.md — comprehensive project specification (source of truth)
+- features.json — feature list with verification steps (coding agent contract)
+- init.sh — dev environment boot script
+- claude-progress.txt — this file
+- hackathon.md — original hackathon brief
+- rough_idea.md — original project idea
+
+===
+
+NEXT SESSION SHOULD:
+1. Run init.sh to confirm environment
+2. Read this file and features.json for context
+3. Start feature F01: Create Algolia account, index, push test records
+4. Then F02: Configure Agent Studio agent with system prompt v1
+5. Then F03: Validate multi-step retrieval, XML output, response structure
