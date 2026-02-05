@@ -79,9 +79,15 @@ FILES IN REPO:
 
 ===
 
+SESSION 1 STATUS: COMPLETE (planning phase done)
+
+===
+
 NEXT SESSION SHOULD:
-1. Run init.sh to confirm environment
-2. Read this file and features.json for context
-3. Start feature F01: Create Algolia account, index, push test records
-4. Then F02: Configure Agent Studio agent with system prompt v1
-5. Then F03: Validate multi-step retrieval, XML output, response structure
+1. Read this file and features.json for context
+2. Algolia account is confirmed accessible with Agent Studio available
+3. Start F01: Create apex_gear_policies index, configure attributes, push 5-6 test records
+4. Then F02: Create Agent Studio agent, configure LLM provider (check what's available in the dashboard — OpenAI, Gemini, or Algolia's free GPT-4.1), write system prompt v1
+5. Then F03: Go/no-go spike validation — multi-step retrieval, XML output, consistency
+6. Goal: complete F01-F03 (spike phase) this session. If spike passes, optionally start F04 (full dataset)
+7. LLM provider decision: use whatever is available and reliable. Key: must support temperature=0 and not rate-limit during judging. Paid key preferred for production.
