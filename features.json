@@ -265,7 +265,7 @@
         "Verify: page renders with two panels and onboarding text on load",
         "Verify: state transitions work (use console.log or React DevTools)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F13",
@@ -282,7 +282,7 @@
         "Verify: clicking a ticket highlights it and triggers the onSelectTicket callback",
         "Verify: clicking a different ticket de-highlights the previous one"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F14",
@@ -295,7 +295,7 @@
         "Display animated text: 'Analyzing ticket against policy database...'",
         "Verify: loading state renders when analysisState=loading (trigger via mock or slow API)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F15",
@@ -312,7 +312,7 @@
         "Verify with mock data: DENIED verdict renders red badge",
         "Verify with mock data: all text fields display correctly with no overflow"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F16",
@@ -329,7 +329,7 @@
         "Verify with mock data: single policy with no conflict renders cleanly (no winner badge needed)",
         "Verify: cards handle long policy text without layout breaking"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F17",
@@ -343,7 +343,7 @@
         "Verify with mock data: conflict scenario renders full trace with highlighted rule",
         "Verify with mock data: no-conflict scenario renders clean message"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F18",
@@ -360,7 +360,7 @@
         "Retry button calls the onRetry callback (which re-triggers analyzeTicket in the layout shell)",
         "Verify: each state renders correctly when corresponding analysisState is set"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F19",
@@ -374,7 +374,7 @@
         "Verify: timing displays correctly after a successful mock analysis",
         "Verify: badge is visible in onboarding state and success state"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F20",
