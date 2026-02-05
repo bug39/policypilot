@@ -395,7 +395,7 @@
         "Verify: if XML parsing fails on any scenario, parse failure state renders with raw response (not a crash)",
         "Verify: timing display shows reasonable values (2-15 seconds)"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F21",
