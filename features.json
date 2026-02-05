@@ -134,7 +134,7 @@
         "If either scenario produces wrong verdict, iterate system prompt and retest",
         "Both scenarios produce correct verdicts at least 3 times in a row"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F06",
