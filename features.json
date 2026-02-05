@@ -188,7 +188,7 @@
         "Verify 'npm run dev' starts the dev server on localhost:3000",
         "Verify a basic page renders at localhost:3000"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F09",
