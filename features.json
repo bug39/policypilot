@@ -115,7 +115,7 @@
         "Verify total record count in Algolia dashboard matches expected count",
         "Run test searches confirming each demo scenario's relevant policies are retrievable with appropriate filters"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F05",
