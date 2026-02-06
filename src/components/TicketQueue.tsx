@@ -40,6 +40,7 @@ export function TicketQueue({
               className={`
                 w-full text-left rounded-lg p-3.5 transition-all duration-150
                 border
+                focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-emerald-accent/50 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-925
                 ${
                   isSelected
                     ? "bg-slate-700/60 border-emerald-accent/40 shadow-[0_0_12px_rgba(52,211,153,0.06)]"

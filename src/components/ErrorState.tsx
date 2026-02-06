@@ -64,7 +64,7 @@ export function ErrorState({ type, rawResponse, onRetry }: ErrorStateProps) {
             onClick={onRetry}
             className={`
               shrink-0 px-3 py-1.5 rounded-md text-xs font-medium
-              transition-colors
+              transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-offset-1 focus-visible:ring-offset-slate-925
               ${
                 isWarning
                   ? "bg-amber-500/10 text-amber-300 hover:bg-amber-500/20"

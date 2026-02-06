@@ -89,9 +89,14 @@ export function PolicyCards({ policies, winningPolicyId }: PolicyCardsProps) {
               </div>
             </div>
 
-            {/* Reason */}
+            {/* Effect + Reason */}
+            {policy.effect && (
+              <p className={`mt-2 text-[11px] font-mono ${applies ? "text-gray-500" : "text-gray-700"}`}>
+                {policy.effect}
+              </p>
+            )}
             <p
-              className={`mt-2 text-xs leading-relaxed ${applies ? "text-gray-400" : "text-gray-600"}`}
+              className={`mt-1.5 text-xs leading-relaxed ${applies ? "text-gray-400" : "text-gray-600"}`}
             >
               {policy.reason}
             </p>

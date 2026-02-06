@@ -427,7 +427,7 @@
         "Capture 4 screenshots (one per scenario) for the submission post — save to /screenshots/",
         "Fix any visual issues found"
       ],
-      "passes": false
+      "passes": true
     },
     {
       "id": "F23",
