@@ -1,7 +1,7 @@
 POLICYPILOT — PROGRESS LOG
 Last updated: 2026-02-05
-Current phase: spike (Day 0)
-Next feature to work on: F01
+Current phase: ship (Day 3)
+Next feature to work on: F21 (deploy), F23 (submission)
 
 ===
 
@@ -91,3 +91,54 @@ NEXT SESSION SHOULD:
 5. Then F03: Go/no-go spike validation — multi-step retrieval, XML output, consistency
 6. Goal: complete F01-F03 (spike phase) this session. If spike passes, optionally start F04 (full dataset)
 7. LLM provider decision: use whatever is available and reliable. Key: must support temperature=0 and not rate-limit during judging. Paid key preferred for production.
+
+===
+
+SESSION 2 — 2026-02-05 (Day 0, Spike + Data + Frontend + Integration)
+
+COMPLETED:
+- F01: Algolia index setup — pushed 6 test records, configured searchable/faceting/ranking attributes
+- F02: Agent Studio setup — system prompt v1, manual dashboard config, validated /completions API
+  - Key API learnings: URL is /agent-studio/1/agents/{ID}/completions, needs compatibilityMode=ai-sdk-5
+  - Message format: { messages: [{ role: 'user', parts: [{ type: 'text', text: '...' }] }] }
+  - Response is SSE, text-delta events use field name "delta" (not "textDelta")
+- F03: Spike validation — GO decision. Multi-step retrieval works (3 searches), XML parses 100%
+  - Initial verdicts were ESCALATE due to facet_filters mismatch; fixed in system prompt v2
+- F04: Full dataset — 26 records across 4 layers (L1=9, L2=6, L3=5, L4=6), pushed to Algolia
+- F05: System prompt tuning — S1 (APPROVED 3/3) and S2 (DENIED 3/3)
+  - Added "no facet_filters" rule and conflict detection improvements
+- F06: System prompt tuning — S3 (APPROVED 3/3) and S4 (APPROVED 3/3), no changes needed
+- F07: Consistency pass — 20/20 perfect (5 runs x 4 scenarios)
+  - Saved 4 sample XML responses, created submission-draft.md skeleton
+- F08: Next.js scaffolding with Tailwind v4, TypeScript strict, .env.example
+- F09: Types (PolicyRecord, ParsedVerdict, DemoTicket, AnalysisState), 4 demo tickets, 4 mock verdicts
+- F10: XML parser with 10 passing vitest tests
+- F11: API route proxy (/api/analyze) with SSE parsing, 30s timeout, error handling
+- F12: Two-panel layout shell with full state management (6 states), onboarding panel
+- F13-F19: All UI components — TicketQueue, LoadingState, VerdictCard, PolicyCards, ConflictTrace, ErrorState, AlgoliaAttribution
+  - Dark "command center" aesthetic: DM Sans + JetBrains Mono, emerald/crimson/amber palette
+- F20: Integration verified — all 4 scenarios pass end-to-end through live Agent Studio API
+  - S1: APPROVED (warranty override, 5 policies, conflict detected)
+  - S2: DENIED (hygiene block, conflict detected)
+  - S3: APPROVED (damage override, 6 policies, conflict detected)
+  - S4: APPROVED (standard return, 6 policies, no conflict)
+- F22: Visual polish — focus states, effect display, screenshots directory
+
+KEY DECISIONS:
+- Used algoliasearch v5 API (not v4)
+- Agent Studio uses GPT-4.1 (free from Algolia)
+- SSE stream parsing (not JSON response) for /completions
+- System prompt v2: no facet_filters, evaluate policies independently for conflict detection
+- Tailwind v4 with @theme block for custom colors
+- DM Sans + JetBrains Mono font pairing
+
+REMAINING (F21, F23):
+- F21: Deploy to Vercel — GitHub repo created (https://github.com/bug39/policypilot), Vercel CLI installed
+  - BLOCKED: Need user to run `vercel login` and `vercel --prod`
+  - Env vars needed: ALGOLIA_APP_ID, ALGOLIA_SEARCH_API_KEY, ALGOLIA_AGENT_ID
+- F23: Finalize dev.to submission post — submission-draft.md skeleton exists
+  - Needs: live URL, screenshots, finalized content for all 4 sections
+
+===
+
+SESSION 2 STATUS: F01-F20 + F22 complete. Blocked on Vercel deploy (F21) and submission (F23).
