@@ -8,22 +8,26 @@ PolicyPilot is a proactive compliance decision engine that transforms customer s
 
 **Workflow it enhances:** Customer support ticket triage. A support agent sees a ticket queue, clicks a ticket, and immediately receives a structured verdict with full policy citations and conflict resolution reasoning — no typing, no waiting for a chatbot to ask questions, no ambiguity.
 
-<!-- TODO: Add more detail about the 4 demo scenarios and what they demonstrate -->
+The app includes 4 demo scenarios that demonstrate the full range of conflict resolution:
+
+1. **Warranty Override** — A treadmill motor failure at 6 weeks. The 30-day return window has expired, but the 2-year motor warranty applies. PolicyPilot detects the conflict and approves the warranty claim.
+2. **Hygiene Block** — Opened earbuds within the return window. The general return policy would approve, but the hygiene override for in-ear audio products blocks the return. PolicyPilot correctly denies the return.
+3. **Damage Override** — Crushed hiking boots delivered 39 days ago. The return window has expired, but shipping damage was reported within 48 hours. The situational override applies, approving the claim.
+4. **Clean Approval** — An unused backpack return within 30 days. No conflicts detected. Standard return approved cleanly, demonstrating the system doesn't over-complicate simple cases.
 
 ---
 
 ## Demo
 
-**Live URL:** <!-- TODO: Insert Vercel URL after F21 -->
+**Live URL:** <!-- TODO: Insert Vercel URL after deployment -->
 
-**Screenshots:** <!-- TODO: Insert 4 screenshots after F22 -->
+### Screenshots
+
+<!-- TODO: Insert 4 screenshots showing each scenario verdict -->
 
 ### Demo Scenarios
 
-1. **Warranty Override** — Treadmill motor failure at 6 weeks. General return policy (30 days) conflicts with product-specific motor warranty (2 years). Verdict: APPROVED via warranty.
-2. **Hygiene Block** — Opened earbuds return. General return policy (within 30 days) conflicts with hygiene override (opened in-ear products are final sale). Verdict: DENIED.
-3. **Damage Override** — Crushed hiking boots delivered 39 days ago. General return policy (expired) conflicts with shipping damage override (reported to carrier within 48h). Verdict: APPROVED via damage override.
-4. **Clean Approval** — Unused backpack return within 30 days. No conflicts. Standard return approved.
+Click any of the 4 pre-loaded support tickets on the left panel to see PolicyPilot analyze it in real-time. Each ticket triggers a different conflict resolution scenario, showing verdicts, policy citations, and reasoning traces.
 
 ---
 
@@ -31,36 +35,95 @@ PolicyPilot is a proactive compliance decision engine that transforms customer s
 
 ### Indexed Data
 
-PolicyPilot indexes **26 policy clause records** for a fictional retailer (Apex Gear) in a single Algolia index (`apex_gear_policies`). Each record is a single policy clause with structured metadata:
+PolicyPilot indexes **26 policy clause records** for a fictional retailer (Apex Gear) in a single Algolia index (`apex_gear_policies`). Each record is a single policy clause — not a monolithic document — with structured metadata enabling precise retrieval:
 
 - **4 policy layers:** store-wide (layer 1), category (layer 2), product-specific (layer 3), situational overrides (layer 4)
 - **Custom ranking:** `desc(policy_layer)`, `desc(priority)`, `desc(specificity_score)` — ensures the most specific, highest-authority clause surfaces first
 - **Faceting attributes:** `policy_type`, `policy_layer`, `applies_to`, `product_tags`, `effect`
-- **Red herring policies:** Expired holiday specials, loyalty member extensions, and bulk discount policies test that the agent doesn't get confused
+- **Red herring policies:** Expired holiday specials, loyalty member extensions, and bulk discount policies are included to test that the agent doesn't get confused — and it doesn't
 
 ### Multi-Step Retrieval
 
-The Agent Studio agent performs **3 separate Algolia searches per ticket:**
-1. General policies (return, refund)
-2. Product-specific or category warranties (using the exact product name from the ticket)
-3. Situational overrides (hygiene, shipping damage, defective item — when conditions warrant)
+The Agent Studio agent performs **3 separate Algolia searches per ticket**, each targeting a different policy layer:
+
+1. **General policies** — searches for return, refund, and exchange policies (layer 1)
+2. **Product-specific warranties** — searches the exact product name from the ticket combined with "warranty" (layers 2-3)
+3. **Situational overrides** — searches for hygiene exceptions, shipping damage overrides, defective item policies, and recalls (layer 4) when ticket conditions warrant
+
+This multi-step approach is critical. A single broad search might miss the product-specific warranty that overrides the general return window, or fail to surface the hygiene exception that blocks an otherwise valid return.
 
 ### Prompt Engineering
 
-<!-- TODO: Describe the system prompt approach, conflict resolution hierarchy, XML output format -->
-<!-- TODO: Include a code snippet of the XML parser or system prompt excerpt -->
+The system prompt defines a strict conflict-resolution protocol:
+
+1. **Retrieve first, reason second** — The agent must complete all 3 search steps before making any verdict decision
+2. **Hierarchy enforcement** — Situational overrides (layer 4) > product-specific (layer 3) > category (layer 2) > store-wide (layer 1). Ties broken by priority score.
+3. **Anti-hallucination guard** — "You MUST only cite policies that appear in your search results. NEVER invent a policy. Quote clause_id verbatim."
+4. **No clarifying questions** — The agent must make a decision or escalate, never ask the user for more information
+5. **Structured XML output** — Every response follows a strict XML format that the frontend parses into structured UI components
+
+Here's how the frontend parser handles the XML:
+
+```typescript
+function extractTag(xml: string, tag: string): string {
+  const regex = new RegExp(`<${tag}>([\\s\\S]*?)</${tag}>`);
+  const match = xml.match(regex);
+  return match ? match[1].trim() : "";
+}
+
+export function parseVerdictResponse(raw: string): ParsedVerdict | null {
+  const verdict = extractTag(raw, "verdict");
+  if (!["APPROVED", "DENIED", "ESCALATE"].includes(verdict)) return null;
+  // ... parse policies, conflict, resolution
+}
+```
 
 ### Structured Output
 
-The system prompt instructs the agent to produce XML-tagged output (`<analysis>`, `<verdict>`, `<policies>`, `<conflict>`, `<resolution>`) that the frontend parses into structured UI components. This is significantly more reliable than parsing free-form text.
+The system prompt instructs the agent to produce XML-tagged output:
+
+```xml
+<analysis>
+  <verdict>APPROVED</verdict>
+  <verdict_type>warranty_claim</verdict_type>
+  <summary>Motor warranty overrides expired return window...</summary>
+  <policies>
+    <policy>
+      <clause_id>WAR-3.1</clause_id>
+      <policy_name>Pro-Treadmill Motor Warranty</policy_name>
+      <applies>true</applies>
+      <effect>warranty_approved</effect>
+      <reason>Motor failed within 2-year warranty period</reason>
+    </policy>
+    <!-- more policies -->
+  </policies>
+  <conflict>
+    <exists>true</exists>
+    <description>Return window expired but warranty applies...</description>
+  </conflict>
+  <resolution>
+    <winning_policy>WAR-3.1</winning_policy>
+    <rule_applied>Product-specific warranty overrides general return</rule_applied>
+  </resolution>
+  <recommended_action>Process warranty claim...</recommended_action>
+</analysis>
+```
+
+This XML format is parsed by the frontend into verdict cards, policy comparison panels, and conflict resolution traces — significantly more reliable than parsing free-form LLM text.
 
 ---
 
 ## Why Fast Retrieval Matters
 
-<!-- TODO: Explain how sub-50ms Algolia retrieval enables real-time policy analysis -->
-<!-- TODO: Contrast with traditional database queries or embedding-based search -->
-<!-- TODO: Mention retrieval time display in the UI -->
+PolicyPilot's value proposition depends on being **real-time**. A support agent looking at a ticket queue needs instant verdicts — not a 30-second wait for each ticket. Algolia's retrieval speed makes this possible:
+
+**Retrieval is the fast part, reasoning is the slow part.** Each analysis involves 3 Algolia searches returning relevant policies, followed by LLM reasoning to detect conflicts and produce a verdict. The total analysis time (shown in the UI as "Analysis completed in X.Xs") is dominated by LLM processing. Algolia's sub-50ms retrieval ensures the agent spends its time *thinking*, not *waiting for data*.
+
+**Structured search beats embedding search here.** Policy documents have precise metadata — policy layers, product categories, effective dates, conditions. Algolia's structured filtering (`policy_type:warranty`, `policy_layer:4`) retrieves exactly the right clauses without the noise of semantic similarity. When a customer reports a defective treadmill motor, we don't want "vaguely related fitness policies" — we want the exact motor warranty clause for that specific product model.
+
+**Custom ranking enforces the hierarchy.** By ranking results by `policy_layer` (desc), `priority` (desc), and `specificity_score` (desc), Algolia surfaces the most authoritative policy first. The agent sees the situational override before the general policy, naturally guiding correct conflict resolution.
+
+The UI displays total analysis time after each verdict ("Analysis completed in X.Xs"), making the speed-to-decision visible to judges. The "Powered by Algolia Agent Studio" attribution reinforces that Algolia's retrieval pipeline is the foundation of every verdict.
 
 ---
 
